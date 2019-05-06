@@ -37,7 +37,7 @@ import os
 import uuid
 import shutil
 import zipfile
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, send_from_directory
 from flask_restplus import Resource, Api, Namespace, fields
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.datastructures import FileStorage
@@ -48,7 +48,7 @@ from tngsdk.project.project import Project as cli_project
 
 log = logging.getLogger(__name__)
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 app.wsgi_app = ProxyFix(app.wsgi_app)
 blueprint = Blueprint('api', __name__, url_prefix="/api")
 api_v1 = Namespace("v1", description="tng-project API v1")
@@ -56,6 +56,14 @@ api = Api(blueprint, version="0.1", title='5GTANGO tng-project API',
           description="5GTANGO tng-project REST API for project management.")
 app.register_blueprint(blueprint)
 api.add_namespace(api_v1)
+
+
+# FIXME: implement properly
+@app.route('/static/<path:path>')
+def send_js(path):
+    static_dir = os.path.join(os.getcwd(), 'example-project')
+    log.debug("Serving static files from: {}".format(static_dir))
+    return send_from_directory(static_dir, path)
 
 
 # parser arguments: for input parameters sent to the API
